@@ -31,8 +31,12 @@ Retorna o valor da raiz aproximado (float), valor do erro majorado (float), núm
 def Bissecao(a, b, eps):
     fa = F(a)
     fb = F(b)   
-    if fa*fb >= 0:
-        raise ValueError("F(a) e F(b) devem ter sinais opostos.")   
+    dfa = F_derivada(a)
+    dfb = F_derivada(b)
+    if fa*fb >= 0 and dfa*dfb <= 0:
+        raise ValueError("F(a) e F(b) devem ter sinais opostos e as suas derivadas o mesmo sinal. Método da bisseção abortado.")   
+    else:
+        print("F(a) e F(b) tem sinais opostos, as suas derivadas tem o mesmo sinal, condições verificadas! Procedendo à aplicação do método da bisseção.")
     iteracoes = 0
     while (b-a)/2 > eps:
         c = (a+b)/2
@@ -56,6 +60,14 @@ Recebe os valores de a e b (float), tem predefenido 2000 samples (int), que func
 Retorna o valor do majorante do erro (float)
 """
 def Majorante_erro(a, b, samples = 2000):
+    fa = F(a)
+    fb = F(b)   
+    dfa = F_derivada(a)
+    dfb = F_derivada(b)
+    if fa*fb >= 0 and dfa*dfb <= 0:
+        raise ValueError("F(a) e F(b) devem ter sinais opostos e as suas derivadas o mesmo sinal. Cálculo do majorante abortado.")   
+    else:
+        print("F(a) e F(b) tem sinais opostos, as suas derivadas tem o mesmo sinal, condições verificadas! Procedendo ao cálculo do majorante")
     espacamento = (b-a)/samples
     m_erro = float('inf')
     x = a
@@ -72,11 +84,19 @@ Recebe os valores de a, b, eps, todos float
 Retorna os valor aproximado da raiz (float), o valor do erro majorado (float), número de iterações (int)
 """
 def Newton(a, b, eps, x0=None):
+    fa = F(a)
+    fb = F(b)   
+    dfa = F_derivada(a)
+    dfb = F_derivada(b)
+    if fa*fb >= 0 and dfa*dfb <= 0:
+        raise ValueError("F(a) e F(b) devem ter sinais opostos e as suas derivadas o mesmo sinal. Método de Newton abortado.")   
+    else:
+        print("F(a) e F(b) tem sinais opostos, as suas derivadas tem o mesmo sinal, condições verificadas! Procedendo à aplicação do método de Newton.")
     if x0 is None:
         x0 = (a+b)/2
     m_erro = Majorante_erro(a, b)
     x = x0
-    max_iteracoes = 5
+    max_iteracoes = 15
     iteracoes = 0    
     while iteracoes < max_iteracoes:
         fx = F(x)
