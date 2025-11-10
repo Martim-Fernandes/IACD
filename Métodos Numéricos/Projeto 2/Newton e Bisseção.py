@@ -1,11 +1,6 @@
 import math
 import sys
-
-"""
-Documentação deste ficheiro, para melhor compreensão, foi feita de acordo com a seguinte estrutura:
-Explicação da função, Inputs, Outputs
-Comentários removidos após última análise e a documentação aparece antes da função
-"""
+import matplotlib.pyplot as plt
 
 """
 Cálculo de F(x)
@@ -36,7 +31,7 @@ def Bissecao(a, b, eps):
     if fa*fb >= 0 and dfa*dfb <= 0:
         raise ValueError("F(a) e F(b) devem ter sinais opostos e as suas derivadas o mesmo sinal. Método da bisseção abortado.")   
     else:
-        print("F(a) e F(b) tem sinais opostos, as suas derivadas tem o mesmo sinal, condições verificadas! Procedendo à aplicação do método da bisseção.")
+        print(" F(a) e F(b) têm sinais opostos, F'(a) e F'(b) têm o mesmo sinal — condições verificadas para a bisseção.")
     iteracoes = 0
     while (b-a)/2 > eps:
         c = (a+b)/2
@@ -56,26 +51,18 @@ def Bissecao(a, b, eps):
 
 """
 Cálculo do majorante do erro
-Recebe os valores de a e b (float), tem predefenido 2000 samples (int), que funciona para dividir o intervalo dado em 2000 partes
+Recebe os valores de a e b (float)
 Retorna o valor do majorante do erro (float)
 """
 def Majorante_erro(a, b, samples = 2000):
-    fa = F(a)
-    fb = F(b)   
-    dfa = F_derivada(a)
-    dfb = F_derivada(b)
-    if fa*fb >= 0 and dfa*dfb <= 0:
-        raise ValueError("F(a) e F(b) devem ter sinais opostos e as suas derivadas o mesmo sinal. Cálculo do majorante abortado.")   
-    else:
-        print("F(a) e F(b) tem sinais opostos, as suas derivadas tem o mesmo sinal, condições verificadas! Procedendo ao cálculo do majorante")
     espacamento = (b-a)/samples
     m_erro = float('inf')
     x = a
     for _ in range(samples + 1):
         m_erro = min(m_erro, abs(F_derivada(x)))
         x += espacamento
-    if m_erro < 1*(10**(-14)):
-        m_erro = 1*(10**(-14))
+    if m_erro < 1e-14:
+        m_erro = 1e-14
     return m_erro
 
 """
@@ -91,7 +78,7 @@ def Newton(a, b, eps, x0=None):
     if fa*fb >= 0 and dfa*dfb <= 0:
         raise ValueError("F(a) e F(b) devem ter sinais opostos e as suas derivadas o mesmo sinal. Método de Newton abortado.")   
     else:
-        print("F(a) e F(b) tem sinais opostos, as suas derivadas tem o mesmo sinal, condições verificadas! Procedendo à aplicação do método de Newton.")
+        print(" F(a) e F(b) têm sinais opostos, F'(a) e F'(b) têm o mesmo sinal — condições verificadas para Newton.")
     if x0 is None:
         x0 = (a+b)/2
     m_erro = Majorante_erro(a, b)
@@ -101,10 +88,10 @@ def Newton(a, b, eps, x0=None):
     while iteracoes < max_iteracoes:
         fx = F(x)
         dfx = F_derivada(x)
-        if abs(dfx) < (1*(10**(-14))):
+        if abs(dfx) < 1e-14:
             x1 = (a+b)/2
         else:
-            x1 = x-(fx/dfx)
+            x1 = x - (fx/dfx)
         if not (a <= x1 <= b):
             x1 = (a+b)/2
         iteracoes += 1
@@ -115,55 +102,53 @@ def Newton(a, b, eps, x0=None):
     return x, abs(F(x))/m_erro, iteracoes
 
 """
-Verifica a existência e localização de uma raiz no intervalo dado, iterando pela incrementação de k
-Recebe um intervalo, xmin e xmax, ambos float
-Retorna um subintervalo onde occore a mudança de sinal, ambos float, se ocorrer, senão retorna None
+Plota o gráfico de F(x) e encontra automaticamente o primeiro intervalo onde há mudança de sinal
+Recebe xmin, xmax, espacamento, todos float
+Retorna (a, b) desse intervalo
 """
-def Raiz(xmin, xmax):
-    k = 0.01
-    while (xmin+k) <= xmax:
-        a = F(xmin)
-        b = F(xmin+k)
-        if (a*b) < 0:
-            print("Raiz encontrada para o intervalo:", xmin, xmax)
-            return xmin, xmin + k
-        else:
-            xmin += k
-    print("Não foi encontrada raiz no intervalo fornecido.")
-    return None
+def Plotar_e_encontrar_raiz(xmin=-2, xmax=2, espacamento=0.01):
+    xs = []
+    ys = []
+    x = xmin
+    while x <= xmax:
+        xs.append(x)
+        ys.append(F(x))
+        x += espacamento
+    plt.figure(figsize=(8,5))
+    plt.axhline(0, color='black', linewidth=1)
+    plt.plot(xs, ys, label="F(x)")
+    plt.title("Gráfico de F(x) = sin(x²) + 1.1 - e^(-x)")
+    plt.xlabel("x")
+    plt.ylabel("F(x)")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    for i in range(len(xs)-1):
+        if ys[i] * ys[i+1] < 0:
+            print(f"Raiz encontrada aproximadamente entre {xs[i]:.2f} e {xs[i+1]:.2f}")
+            return xs[i], xs[i+1]
+    print("Nenhuma raiz encontrada no intervalo visualizado.")
+    sys.exit()
 
 """
-Função principal, lê o intervalo dado pelo utilizador, determina um subintervalo onde existe mudança de sinal,
-verifica se a raiz está contida num intervalo de largura 0.1, aplica ambos os métodos (Bisseção e Newton) e apresenta resultados.
-Obtém os valores xmin e xmax através do terminal, ambos float
+Função principal, determina um subintervalo onde existe mudança de sinal, verifica se a raiz está contida 
+num intervalo de largura 0.1, aplica ambos os métodos (Bisseção e Newton) e apresenta resultados obtidos.
+Sem inputs
 Retorna o subintervalo onde se encontra a raiz, aproximação por bisseção e Newton, erros majorados e números de iterações
 """
 if __name__ == "__main__":
-    xmin = float(input("xmin = "))
-    xmax = float(input("xmax = "))
-    resultado = Raiz(xmin, xmax)
-    if resultado is None:
-        sys.exit("Não foi encontrada raiz no intervalo fornecido.")
-    p, q = resultado
+    print("=== Determinação automática do intervalo I ===")
+    p, q = Plotar_e_encontrar_raiz(-2, 2)
     c = (p+q)/2
     a = c - 0.05
     b = c + 0.05
-    if (a <= p) and (q <= b):
-        print("Verificação: o intervalo contém a raiz.")
-    else:
-        sys.exit("Verificação: o intervalo não contém a raiz, processo terminado.")
-    eps = 1*(10**(-9))
+    print(f"Intervalo I definido automaticamente: [{a:.4f}, {b:.4f}] (amplitude = {b-a:.2f})")
+    eps = 1e-9
     x0 = (a+b)/2
-    Fa = F(a)
-    Fb = F(b)
-    if Fa*Fb < 0:
-        a_bissecao, b_bissecao = a, b
-        print("Ocorre mudança de sinal, valores para bisseção serão:", a, b)
-    else:
-        a_bissecao, b_bissecao = p, q
-        print("Não ocorre mudança de sinal, valores para bisseção serão:", p, q)
-    x_bissecao, erro_majorado_bissecao, iteracoes_bissecao = Bissecao(a_bissecao, b_bissecao, eps)
-    print(f"Bisseção | x = {x_bissecao:.12f} | erro <= {erro_majorado_bissecao:.2e} | iterações = {iteracoes_bissecao}")
-    print("Os valores usados para o método de Newton serão:", a, b, eps, x0)
-    x_newton, erro_majorado_newton, iteracoes_newton = Newton(a, b, eps, x0)
-    print(f"Newton | x = {x_newton:.12f} | erro <= {erro_majorado_newton:.2e} | iterações = {iteracoes_newton}")
+    print("\n Método da Bisseção ")
+    x_bissecao, erro_b, it_b = Bissecao(a, b, eps)
+    print(f"Resultado Bisseção: x = {x_bissecao:.12f} | erro <= {erro_b:.2e} | iterações = {it_b}")
+
+    print("\nMétodo de Newton")
+    x_newton, erro_n, it_n = Newton(a, b, eps, x0)
+    print(f"Resultado Newton:   x = {x_newton:.12f} | erro <= {erro_n:.2e} | iterações = {it_n}")
