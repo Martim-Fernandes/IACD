@@ -132,7 +132,7 @@ if __name__ == "__main__":
         print("Verificação: o intervalo contém a raiz.")
     else:
         sys.exit("Verificação: o intervalo não contém a raiz, processo terminado.")
-    eps = 1*(10*(-9))
+    eps = 1*(10**(-9))
     x0 = (a+b)/2
     Fa = F(a)
     Fb = F(b)
